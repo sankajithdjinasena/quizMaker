@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Warehouse Quiz</title>
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: #f3f6fb;
+        margin: 0;
+        padding: 0;
+    }
+    .container {
+        max-width: 900px;
+        margin: 40px auto;
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        padding: 30px 40px;
+    }
+    h1 {
+        text-align: center;
+        color: #333;
+    }
+    .timer {
+        text-align: center;
+        font-size: 18px;
+        background: #eef2ff;
+        padding: 10px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        color: #2c3e50;
+        font-weight: bold;
+    }
+    .question {
+        margin-bottom: 20px;
+        background: #f9fafc;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .question h3 {
+        margin-bottom: 10px;
+    }
+    label {
+        display: block;
+        padding: 6px;
+        cursor: pointer;
+        border-radius: 6px;
+    }
+    input[type="radio"] {
+        margin-right: 8px;
+    }
+    button {
+        background: #4f46e5;
+        color: white;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 8px;
+        font-size: 16px;
+        cursor: pointer;
+        margin: 10px;
+    }
+    button:hover {
+        background: #3730a3;
+    }
+    .correct {
+        background-color: #d1fae5;
+        border-left: 5px solid #10b981;
+    }
+    .wrong {
+        background-color: #fee2e2;
+        border-left: 5px solid #ef4444;
+    }
+    .result {
+        text-align: center;
+        font-size: 20px;
+        margin-top: 20px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+<div class="container">
+    <h1>Data Warehouse Quiz</h1>
+    <div class="timer" id="timer">Time Left: 30:00</div>
+    <form id="quizForm"></form>
+    <div style="text-align:center;">
+        <button type="button" id="submitBtn" onclick="submitQuiz()">Submit Quiz</button>
+        <button type="button" id="retryBtn" style="display:none;" onclick="restartQuiz()">Try Again</button>
+    </div>
+    <div class="result" id="result"></div>
+</div>
+<script>
+const questions = [
+      { q: "What is the primary purpose of a Data Warehouse?", options: ["To handle day-to-day transaction processing (OLTP).", "To support analysis and decision-making (OLAP).", "To manage real-time updates and deletes.", "To maintain application-specific current data."], answer: 1 },
+    { q: "According to W. H. Inmon's definition, which of the following is NOT a characteristic of a data warehouse?", options: ["Integrated.", "Time-variant.", "Volatile.", "Subject-oriented."], answer: 2 },
+    { q: "The data stored in a data warehouse is generally:", options: ["Current, up-to-date data.", "Historical and integrated data over time.", "Operational data used for daily operations.", "Only real-time streaming data."], answer: 1 },
+    { q: "The Data Warehouse scope is typically:", options: ["Application-specific.", "Optimized for fast transaction processing.", "Integrated at the organizational level, combining multiple databases.", "Managed only by clerks and operational staff."], answer: 2 },
+    { q: "Which term describes the process where data from different sources is combined and cleaned to ensure consistency in naming conventions and attribute measures?", options: ["Time-variant.", "Non-volatile.", "Subject-oriented.", "Integrated."], answer: 3 },
+    { q: "A Data Warehouse is considered 'Non-Volatile' because:", options: ["It is organized around subjects like customer and sales.", "It has a significantly longer time horizon than operational systems.", "Operational update of data does not occur in the data warehouse environment.", "It requires only two operations: initial loading and access."], answer: 2 },
+    { q: "In terms of cost, a Data Warehouse is generally:", options: ["Less expensive to construct than an operational database.", "Equally expensive to construct and maintain.", "More expensive to construct and maintain.", "Free to maintain but costly to build."], answer: 2 },
+    { q: "The core challenge when using production data for warehousing is:", options: ["The data is only current and up-to-date.", "Its integration at the organizational level.", "The disparity, lack of conformance, fragmentation, and inconsistency across source systems.", "It must be stored in tape cartridges for long-term retention."], answer: 2 },
+    { q: "Which data warehouse characteristic relates to the inclusion of an element of time?", options: ["Subject-Oriented.", "Integrated.", "Time-Variant.", "Non-Volatile."], answer: 2 },
+    { q: "The main users of a Data Warehouse include:", options: ["Clerks, developers, operational staff.", "Managers, analysts, decision-makers.", "Financial system users and CRM system users.", "Only novice users needing prefabricated reports."], answer: 1 },
+    { q: "Which type of data is kept by individuals or departments in private files?", options: ["Production Data.", "Archived Data.", "Internal Data.", "External Data."], answer: 2 },
+    { q: "Data from enterprise operational systems such as financial systems is known as:", options: ["Internal Data.", "Archived Data.", "External Data.", "Production Data."], answer: 3 },
+    { q: "Data that is removed from operational systems for long-term analysis is:", options: ["Internal Data.", "Archived Data.", "Production Data.", "Real-time Data."], answer: 1 },
+    { q: "A data warehouse may incorporate data from outside the organization. This is referred to as:", options: ["Internal Data.", "Production Data.", "External Data.", "Metadata."], answer: 2 },
+    { q: "Why is Archived Data important in a Data Warehouse?", options: ["It is current, up-to-date data for daily operations.", "It enables time-series analysis and pattern detection.", "It provides real-time updates for immediate insights.", "It eliminates the need for other data sources."], answer: 1 },
+    { q: "What is the primary role of the Data Staging component?", options: ["To perform analysis.", "Preparation area for data before loading.", "Provide a navigational map.", "Store aggregated data."], answer: 1 },
+    { q: "Which operation is NOT part of Data Staging?", options: ["Cleaning and Deduplication.", "Conversion and Combination.", "Extraction and Transformation.", "OLAP Analysis."], answer: 3 },
+    { q: "Semantic Standardization means:", options: ["Unifying data types.", "Summarizing data.", "Resolving differences in meaning.", "Propagating updates."], answer: 2 },
+    { q: "Goal of 'Initial Load' phase:", options: ["Extracting changes continuously.", "Populating the warehouse baseline.", "Providing reports.", "Moving old data."], answer: 1 },
+    { q: "Which component acts as 'Yellow Pages' of the data warehouse?", options: ["Data Staging.", "Storage Component.", "Management Component.", "Metadata."], answer: 3 },
+    { q: "What is the primary function of the Management and Control Component?", options: ["Generate reports.", "Coordinate and oversee all components.", "Store data.", "Define extraction rules."], answer: 1 },
+    { q: "Power users need tools for:", options: ["Prefabricated reports.", "Dashboards only.", "Custom queries and drill-down.", "Simple reports only."], answer: 2 },
+    { q: "End-User Metadata serves to:", options: ["Document source formats.", "Manage data flow.", "Act as navigational map.", "Store aggregate data."], answer: 2 },
+    { q: "Which system stores aggregated data optimized for OLAP?", options: ["Data Marts.", "RDBMS.", "MDDBs.", "ODS."], answer: 2 },
+    { q: "Which tool focuses on KPIs for executives?", options: ["Prefabricated Reports.", "Ad Hoc Reports.", "EIS / Dashboards.", "Data Mining Tools."], answer: 2 },
+    { q: "Executives typically need:", options: ["Novice reports.", "Analyst tools.", "Power tools.", "Dashboards and summaries."], answer: 3 },
+    { q: "Data Marts are:", options: ["Entire data warehouse.", "Small focused repositories for departments.", "Central repository.", "Legacy systems."], answer: 1 },
+    { q: "Operational DBMS handles OLTP, while a Data Warehouse supports:", options: ["Analytical processing (OLAP).", "Fast transactions.", "Inconsistency.", "Only current data."], answer: 0 },
+    { q: "Which of the following is a disadvantage of a Data Warehouse?", options: ["Integrated Data.", "Improved Decision-Making.", "High Cost and Complex Implementation.", "Historical Analysis."], answer: 2 },
+    { q: "An Enterprise Data Warehouse (EDW) is defined as:", options: ["Subset for one department.", "Centralized warehouse for entire organization.", "Real-time data store.", "Streaming data system."], answer: 1 }
+];
+
+let quizQuestions = [];
+let currentIndex = 0;
+let score = 0;
+let selectedAnswers = {};
+
+function loadQuiz() {
+  quizQuestions = questions.sort(() => 0.5 - Math.random()).slice(0, 30);
+  currentIndex = 0;
+  score = 0;
+  selectedAnswers = {};
+  showQuestion();
+  document.getElementById("result").textContent = "";
+  document.getElementById("retryBtn").style.display = "none";
+  document.getElementById("submitBtn").style.display = "none";
+  startTimer();
+}
+
+// ------------------ Display One Question ------------------
+function showQuestion() {
+  const quizForm = document.getElementById("quizForm");
+  quizForm.innerHTML = "";
+
+  const q = quizQuestions[currentIndex];
+  const div = document.createElement("div");
+  div.classList.add("question");
+
+  div.innerHTML = `
+    <h3>Q${currentIndex + 1}. ${q.q}</h3>
+    ${q.options.map((opt, j) => `
+      <label>
+        <input type="radio" name="q${currentIndex}" value="${j}" ${selectedAnswers[currentIndex] === j ? "checked" : ""}>
+        ${opt}
+      </label>
+    `).join("")}
+  `;
+
+  quizForm.appendChild(div);
+
+  // Add control buttons
+  const btnContainer = document.createElement("div");
+  btnContainer.style.textAlign = "center";
+  btnContainer.style.marginTop = "15px";
+
+  if (currentIndex < quizQuestions.length - 1) {
+    const nextBtn = document.createElement("button");
+    nextBtn.textContent = "Next Question";
+    nextBtn.type = "button";
+    nextBtn.onclick = nextQuestion;
+    btnContainer.appendChild(nextBtn);
+  } else {
+    const submitBtn = document.createElement("button");
+    submitBtn.textContent = "Submit Quiz";
+    submitBtn.type = "button";
+    submitBtn.onclick = submitQuiz;
+    btnContainer.appendChild(submitBtn);
+  }
+
+  quizForm.appendChild(btnContainer);
+}
+
+// ------------------ Next Question ------------------
+function nextQuestion() {
+  const selected = document.querySelector(`input[name="q${currentIndex}"]:checked`);
+  if (!selected) {
+    alert("Please select an answer before continuing!");
+    return;
+  }
+
+  const selectedValue = parseInt(selected.value);
+  selectedAnswers[currentIndex] = selectedValue;
+  if (selectedValue === quizQuestions[currentIndex].answer) score++;
+
+  currentIndex++;
+  if (currentIndex < quizQuestions.length) showQuestion();
+}
+
+// ------------------ Submit Quiz ------------------
+function submitQuiz() {
+  clearInterval(timerInterval);
+  const quizForm = document.getElementById("quizForm");
+  quizForm.innerHTML = "";
+  document.getElementById("result").innerHTML = `✅ You scored <b>${score}</b> / ${quizQuestions.length}`;
+  document.getElementById("retryBtn").style.display = "inline-block";
+  document.getElementById("submitBtn").style.display = "none";
+}
+
+// ------------------ Restart Quiz ------------------
+function restartQuiz() {
+  loadQuiz();
+}
+
+// ------------------ 30-Minute Timer ------------------
+let time = 30 * 60;
+let timerInterval;
+function startTimer() {
+  time = 30 * 60;
+  clearInterval(timerInterval);
+  const timerElement = document.getElementById("timer");
+  timerInterval = setInterval(() => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    timerElement.textContent = `Time Left: ${minutes}:${seconds < 10 ? "0" : ""}${seconds}`;
+    if (time <= 0) {
+      clearInterval(timerInterval);
+      alert("Time is up! Auto-submitting your quiz.");
+      submitQuiz();
+    }
+    time--;
+  }, 1000);
+}
+
+loadQuiz();
+</script>
+</body>
+</html>
